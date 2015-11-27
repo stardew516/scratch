@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="initial-scale=1.0,width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+	<title>刮刮卡</title>
+	<style>
+		body{
+			margin: 0;
+			overflow: hidden;
+		}
+		.wrap{
+			width: 640px;
+			position: relative;
+			background: url(images/hgbg.jpg) no-repeat 70px 50px;
+		}
+		.title{
+			text-align: center;
+			line-height: 50px;
+			font-size: 48px;
+			padding: 20px 0;
+			color: red;
+			display: none;
+		}
+		.outer{
+			min-height: 640px;
+			width: 640px;
+		}
+		.reward{
+			position: absolute;
+		  	top: 342px;
+			left: 196px;
+			font-size: 72px;
+			font-weight: bold;
+			color: #ff2239;
+			display: inline-block;
+			width: 200px;
+			text-align: center;
+			z-index: -1;
+		}
+		.op{
+			padding: 20px;
+  			width: 360px;
+  			margin: 0 auto;
+		}
+		.op a{
+			float: left;
+			font-size: 32px;
+			line-height: 50px;
+			display: inline-block;
+			text-align: center;
+			padding: 20px;
+			border-radius: 8px;
+			color: #fff;
+		}
+		.again{
+			background-color: #4FA828;
+		}
+		.open{
+			margin-left: 20px;
+			background-color: #ff5000;
+		}
+		.clearfix{
+			zoom: 1;
+		}
+		.clearfix:after{
+			overflow: hidden;
+			content: '';
+			height: 0;
+			display: block;
+			clear: both;
+		}
+	</style>
+</head>
+<body>
+	<div class="title">刮刮乐</div>
+	<div id="content" class="wrap">
+		<div class="outer" id='outer'>
+			<canvas id="canvas" width="640" height="640"></canvas>
+		</div>
+		<span id='reward' class='reward'>1000</span>
+		<div class="op clearfix">
+			<a class="again" onclick='scratch.again()'>再来一次</a>
+			<a class="open" onclick="scratch.openup()">直接开奖</a>
+		</div>
+	</div>
+<script type="text/javascript">
+
+	var scratch = {
+		random : parseInt(Math.random() * 100,10),//是否中奖  偶数中奖  奇数不中奖
+		open : 1,//直接开奖标志
+		init : function(){ //初始化  背景  
+			if(this.random % 2 == 0){
+				//document.getElementById("outer").style.cssText = 'background:url(images/scbg.jpg) no-repeat 0 0';
+			}else{
+				document.getElementById("outer").style.cssText = 'background:url(images/no.jpg) no-repeat 0 0';
+			}
+			this.awards();   //初始化  中奖金额
+			this.changeSize();  //页面适配
+		},
+		again: function(){    //再来一次
+			window.location.href = 'scratch.html?t=' +(new Date()).getTime();
+		},
+		openup: function(){   //直接开奖
+			if(this.open){
+				gray.fillRect(0,0,640,640);
+				if(this.random % 2 == 0){
+					setTimeout(function(){
+						document.getElementById("outer").style.cssText = 'background:none';
+					},600);
+				}
+				this.open = 0;
+			}
+		},
+		awards: function(){   //0-1000金额
+			var num = parseInt(Math.random() * 1000,10);
+			document.getElementById("reward").innerHTML = num;
+		},
+		changeSize: function(){  //页面适配
+			var page = window;
+			window.orientation;
+			var phoneWidth = parseInt(page.innerWidth,10);
+			var phoneScale = phoneWidth / 640;
+			document.body.clientHeight = page.innerHeight;
+			var content = document.getElementById('content');
+			content.style.cssText = '-webkit-transform-origin:0 0;transform-orgin:0 0;-webkit-transform:scale(' + phoneScale + ');transform:scale(' + phoneScale + ');';
+	
+		}
+
+	}
+
+	/* canvas start */
+	var canvas = document.getElementById('canvas');
+	var gray = canvas.getContext('2d');
+	gray.beginPath();
+	gray.fillStyle = '#999';
+	gray.fillRect(0,0,640,640);
+	gray.closePath();
+
+	gray.globalCompositeOperation = 'destination-out';
+
+	canvas.addEventListener('touchmove',function(e){
+		e.preventDefault();
+		gray.beginPath();
+		gray.fillStyle = '#f00';
+		gray.arc(e.targetTouches[0].clientX * 640 / window.innerWidth,e.targetTouches[0].clientY * 640 / window.innerWidth,60,0,Math.PI*2);
+		gray.fill();
+		gray.closePath();
+	});
+	
+	canvas.addEventListener('touchend',function(e){
+		e.preventDefault();
+		var num = 0;
+		var datas = gray.getImageData(0,0,640,640);
+		for(var i = 0; i < datas.data.length; i++){
+			if(datas.data[i] == 0){
+				num ++;
+			}
+		}
+		if(num >= datas.data.length * 0.6){
+			scratch.openup();
+		}
+	});
+	/* canvas end */
+
+	scratch.init(); //页面初始化
+</script>
+</body>
+</html>
